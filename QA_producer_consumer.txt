@@ -1,40 +1,48 @@
-Examine the version of the producer-consumer code provided in the instructor notes and
-answer the following questions.  You may have to copy and past into a
-text editor to see the line numbers.
+Examine the version of the producer-consumer code provided in the
+instructor notes and answer the following questions. You may have to
+copy and past into a text editor to see the line numbers.
 
 1. The main function contains calls to exit() (line 57) and
 pthread_exit() (line 65). How will the effect of these two calls
 differ when they are executed?
-
-
+The exit() call causes the entire process to exit with an error.
+The pthread_exit() call causes the consumer_thread in the pthread_join function to terminate.
 
 2. The main function calls pthread_join() (line 62) with the parameter
 thread_return. Where does the value stored in thread_return come from
 when the consumer_thread is joined?
-
+The value in thread_return is supplied by the ‘count’ variable that is returned from the 
+counsumer_routine.
 
 
 3. Where does the value stored in thread_return come from if the joined
 thread terminated by calling pthread_exit instead of finishing
 normally?
-
+The argument in the consumer_routine function is the thread_return pointer that was 
+passed to it.  That means they point to the same memory region and the argument that 
+is pass to pthread_exit would provide the return value.
 
 
 4. On the same call to pthread_join() (line 62), what will it do if the
 thread being joined (consumer_thread, in this case) finishes before
 the main thread reaches the that line of code (line 62)?
-
-
+The pthread_join would return immediately with the error “Failed to join consumer 
+thread: #”, where the ‘#’ is the thread number that it was not able to join and the 
+consumer_thread’s resources would be released.
 
 5. In this program, the main thread calls pthread_join() on the threads
 it created. Could a different thread call pthread_join() on those
 threads instead? Could a thread call pthread_join() on the main thread
 (assuming it knew the main thread's thread ID - i.e. pthread_t)?
-
+Yes any other thread can call pthread_join to join the threads that it has thread IDs.
+Yes the main thread can call pthread_join to join the threads that it has thread IDs.
 
 
 6. The consumer_routine function calls sched_yield() (line 148) when
 there are no items in the queue. Why does it call sched_yield()
 instead of just continuing to check the queue for an item until one
 arrives?
-
+It calls sched_yield() so that the thread relinquishes the CPU.  If it was continue 
+checking the queue it would basically be busy waiting.
+If the consumer_routine function continued checking, it would be busy waiting and hold 
+the mutex lock and occupy CPU cycles.
