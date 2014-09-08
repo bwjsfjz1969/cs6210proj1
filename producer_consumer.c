@@ -13,6 +13,10 @@ void *consumer_routine(void *arg);
 
 /* Global Data */
 long g_num_prod = 0; /* number of producer threads */
+/************************************************************************
+* Error 1								*
+* These Global Data variables require initialization 			*
+*************************************************************************/
 pthread_mutex_t g_num_prod_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t g_queue_lock = PTHREAD_MUTEX_INITIALIZER;
 
@@ -41,9 +45,14 @@ int main(int argc, char **argv) {
 
   printf("Producer thread started with thread id %" PRIdPTR "\n", (intptr_t) producer_thread);
 
-  result = pthread_detach(producer_thread);
-  if (0 != result)
-    fprintf(stderr, "Failed to detach producer thread: %s\n", strerror(result));
+/************************************************************************
+* Error 2 								*
+*  We can not detach a thread and than join it.				*
+*  Commented it out to fix						*
+*************************************************************************/
+  //result = pthread_detach(producer_thread);
+  //if (0 != result)
+  //  fprintf(stderr, "Failed to detach producer thread: %s\n", strerror(result));
 
   result = pthread_create(&consumer_thread, NULL, consumer_routine, &queue);
   if (0 != result) {
@@ -52,6 +61,7 @@ int main(int argc, char **argv) {
   }
 
   /* Join threads, handle return values where appropriate */
+// question 1
 
   result = pthread_join(consumer_thread, &thread_return);
   if (0 != result) {
@@ -65,8 +75,15 @@ int main(int argc, char **argv) {
     pthread_exit(NULL);
   }
   
+
   printf("\nPrinted %"PRIdPTR" characters.\n", (intptr_t) thread_return);
-  free(thread_return);
+/************************************************************************
+* Error 3								*
+* intptr_t returns the pointer thread_return to a void pointer		*
+* and free isn't needed							*
+* the producer_thread							*
+*************************************************************************/
+  //free(thread_return);
 
   pthread_mutex_destroy(&g_queue_lock);
   pthread_mutex_destroy(&g_num_prod_lock);
@@ -98,7 +115,7 @@ void *producer_routine(void *arg) {
       /* Add the node to the queue */
       pthread_mutex_lock(&g_queue_lock);
 
-      steque_enqueue(queue_p, (void*) c);
+      steque_enqueue(queue_p, (void*)c);
 
       pthread_mutex_unlock(&g_queue_lock);
 
@@ -106,6 +123,11 @@ void *producer_routine(void *arg) {
     }
   }
 
+
+/************************************************************************
+* Error 4												*
+* Global variable g_num_prod access must be protected with mutex 	*
+*************************************************************************/
   pthread_mutex_lock(&g_num_prod_lock);
   --g_num_prod;
   pthread_mutex_unlock(&g_num_prod_lock);
@@ -119,11 +141,11 @@ void *consumer_routine(void *arg) {
   intptr_t c;
   long count = 0; /* number of nodes this thread printed */
 
+
   printf("Consumer thread started with thread id %"PRIdPTR"\n", (intptr_t) pthread_self());
 
   /* terminate the loop only when there are no more items in the queue
    * AND the producer threads are all done */
-
   pthread_mutex_lock(&g_queue_lock);
   pthread_mutex_lock(&g_num_prod_lock);
 
@@ -140,6 +162,13 @@ void *consumer_routine(void *arg) {
       pthread_mutex_unlock(&g_queue_lock);
       sched_yield();
     }
+/************************************************************************
+* Error 5								*
+* we need to lock the mutexes for every iteration of loop		*
+*************************************************************************/
+    pthread_mutex_lock(&g_queue_lock);
+    pthread_mutex_lock(&g_num_prod_lock);
+ 
   }
   pthread_mutex_unlock(&g_num_prod_lock);
   pthread_mutex_unlock(&g_queue_lock);
