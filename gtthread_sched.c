@@ -7,7 +7,7 @@ gtthreads library.  A simple round-robin queue should be used.
 /*
   Include as needed
 */
-
+#include <string.h>
 #include "gtthread.h"
 
 /* 
@@ -78,16 +78,22 @@ void gtthread_exit(void* retval){
   back of the schedule queue.
  */
 void gtthread_yield(void){
-
+  raise(SIGVTALRM);
 
 }
 
 /*
-  The gtthread_yield() function is analogous to pthread_equal,
+  The gtthread_equal() function is analogous to pthread_equal,
   returning zero if the threads are the same and non-zero otherwise.
  */
 int  gtthread_equal(gtthread_t t1, gtthread_t t2){
-
+  /*
+    the question mark expression is a convenience method for if/else. 
+    if t1 equals t2 return 1 else return 0
+  //return (t1==t2)?1:0; 
+  */
+  //return t1==t2;
+  return (t1==t2);
 
 }
 
