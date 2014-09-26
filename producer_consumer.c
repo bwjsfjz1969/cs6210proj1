@@ -125,7 +125,7 @@ void *producer_routine(void *arg) {
 
 
 /************************************************************************
-* Error 4												*
+* Error 4								*
 * Global variable g_num_prod access must be protected with mutex 	*
 *************************************************************************/
   pthread_mutex_lock(&g_num_prod_lock);
